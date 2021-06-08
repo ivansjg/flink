@@ -18,6 +18,10 @@
 
 package org.apache.flink.metrics.prometheus;
 
+import org.apache.beam.sdk.metrics.DistributionResult;
+
+import org.apache.beam.sdk.metrics.GaugeResult;
+
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.metrics.Gauge;
@@ -40,6 +44,7 @@ import org.apache.flink.util.TestLogger;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import org.joda.time.Instant;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -384,6 +389,52 @@ public class PrometheusReporterTest extends TestLogger {
     @After
     public void closeReporterAndShutdownRegistry() throws Exception {
         registry.shutdown().get();
+    }
+
+    private static class FlinkGauge implements Gauge<Long> {
+        GaugeResult data;
+
+        FlinkGauge(GaugeResult data) {
+            this.data = data;
+        }
+
+        void update(GaugeResult update) {
+            this.data = update;
+        }
+
+        @Override
+        public Long getValue() {
+            return data.getValue();
+        }
+    }
+
+    @Test
+    public void beamGaugeIsReportedAsPrometheusGauge() throws UnirestException {
+        FlinkGauge testGauge = new FlinkGauge(GaugeResult.create(3L, Instant.now()));
+        assertThatGaugeIsExported(testGauge, "testGauge", "3.0");
+    }
+
+    public static class FlinkDistributionGauge implements Gauge<DistributionResult> {
+        private DistributionResult data;
+
+        FlinkDistributionGauge(DistributionResult data) {
+            this.data = data;
+        }
+
+        void update(DistributionResult data) {
+            this.data = data;
+        }
+
+        @Override
+        public DistributionResult getValue() {
+            return data;
+        }
+    }
+
+    @Test
+    public void beamDistributionIsReportedAsPrometheusGauge() throws UnirestException {
+        FlinkDistributionGauge testGauge = new FlinkDistributionGauge(DistributionResult.create(1L, 2L, 3L, 4L));
+        assertThatGaugeIsExported(testGauge, "testGauge", "1.0");
     }
 
     /** Utility class providing distinct port ranges. */
