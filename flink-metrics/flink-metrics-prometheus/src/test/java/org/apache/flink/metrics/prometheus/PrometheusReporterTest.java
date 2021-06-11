@@ -18,10 +18,6 @@
 
 package org.apache.flink.metrics.prometheus;
 
-import org.apache.beam.sdk.metrics.DistributionResult;
-
-import org.apache.beam.sdk.metrics.GaugeResult;
-
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.metrics.Gauge;
@@ -44,6 +40,8 @@ import org.apache.flink.util.TestLogger;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import org.apache.beam.sdk.metrics.DistributionResult;
+import org.apache.beam.sdk.metrics.GaugeResult;
 import org.joda.time.Instant;
 import org.junit.After;
 import org.junit.Assert;
@@ -414,7 +412,7 @@ public class PrometheusReporterTest extends TestLogger {
         assertThatGaugeIsExported(testGauge, "testGauge", "3.0");
     }
 
-    public static class FlinkDistributionGauge implements Gauge<DistributionResult> {
+    private static class FlinkDistributionGauge implements Gauge<DistributionResult> {
         private DistributionResult data;
 
         FlinkDistributionGauge(DistributionResult data) {
@@ -433,7 +431,8 @@ public class PrometheusReporterTest extends TestLogger {
 
     @Test
     public void beamDistributionIsReportedAsPrometheusGauge() throws UnirestException {
-        FlinkDistributionGauge testGauge = new FlinkDistributionGauge(DistributionResult.create(1L, 2L, 3L, 4L));
+        FlinkDistributionGauge testGauge =
+                new FlinkDistributionGauge(DistributionResult.create(1L, 2L, 3L, 4L));
         assertThatGaugeIsExported(testGauge, "testGauge", "1.0");
     }
 

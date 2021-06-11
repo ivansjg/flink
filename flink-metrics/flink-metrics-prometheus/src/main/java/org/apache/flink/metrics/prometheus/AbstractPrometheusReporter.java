@@ -73,8 +73,10 @@ public abstract class AbstractPrometheusReporter implements MetricReporter {
     private final Map<String, AbstractMap.SimpleImmutableEntry<Collector, Integer>>
             collectorsWithCountByMetricName = new HashMap<>();
 
-    private static final String BEAM_FLINK_GAUGE_RESULT_CLASS_NAME = "org.apache.beam.sdk.metrics.AutoValue_GaugeResult";
-    private static final String BEAM_FLINK_DSITRIBUTION_RESULT_CLASS_NAME = "org.apache.beam.sdk.metrics.AutoValue_DistributionResult";
+    private static final String BEAM_FLINK_GAUGE_RESULT_CLASS_NAME =
+            "org.apache.beam.sdk.metrics.AutoValue_GaugeResult";
+    private static final String BEAM_FLINK_DSITRIBUTION_RESULT_CLASS_NAME =
+            "org.apache.beam.sdk.metrics.AutoValue_DistributionResult";
     private static Method beamFlinkGaugeResultGetValueMethod;
     private static Method beamFlinkDistributionResultGetSumMethod;
 
@@ -91,7 +93,7 @@ public abstract class AbstractPrometheusReporter implements MetricReporter {
             Class<?> clazz = Class.forName(BEAM_FLINK_DSITRIBUTION_RESULT_CLASS_NAME);
             beamFlinkDistributionResultGetSumMethod = clazz.getDeclaredMethod("getSum");
             beamFlinkDistributionResultGetSumMethod.setAccessible(true);
-        }  catch (NoSuchMethodException | ClassNotFoundException e) {
+        } catch (NoSuchMethodException | ClassNotFoundException e) {
             beamFlinkDistributionResultGetSumMethod = null;
         }
     }
@@ -302,16 +304,24 @@ public abstract class AbstractPrometheusReporter implements MetricReporter {
                 if (value.getClass().getName().contains(BEAM_FLINK_GAUGE_RESULT_CLASS_NAME)) {
                     try {
                         return (long) beamFlinkGaugeResultGetValueMethod.invoke(value);
-                    } catch (IllegalAccessException | InvocationTargetException | NullPointerException e) {
-                        log.debug("Couldn't find either Beam's GaugeResult class in the class loader or its getValue() method");
+                    } catch (IllegalAccessException
+                            | InvocationTargetException
+                            | NullPointerException e) {
+                        log.debug(
+                                "Couldn't find either Beam's GaugeResult class in the class loader or its getValue() method");
                         return 0;
                     }
                 }
-                if (value.getClass().getName().contains(BEAM_FLINK_DSITRIBUTION_RESULT_CLASS_NAME)) {
+                if (value.getClass()
+                        .getName()
+                        .contains(BEAM_FLINK_DSITRIBUTION_RESULT_CLASS_NAME)) {
                     try {
                         return (long) beamFlinkDistributionResultGetSumMethod.invoke(value);
-                    } catch (IllegalAccessException | InvocationTargetException | NullPointerException e) {
-                        log.debug("Couldn't find either Beam's DistributionResult class in the class loader or its getSum() method");
+                    } catch (IllegalAccessException
+                            | InvocationTargetException
+                            | NullPointerException e) {
+                        log.debug(
+                                "Couldn't find either Beam's DistributionResult class in the class loader or its getSum() method");
                         return 0;
                     }
                 }
