@@ -36,6 +36,7 @@ import static org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterO
 import static org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterOptions.GROUPING_KEY;
 import static org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterOptions.HOST;
 import static org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterOptions.JOB_NAME;
+import static org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterOptions.METRIC_FILTER_REGEXP;
 import static org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterOptions.PORT;
 import static org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterOptions.RANDOM_JOB_NAME_SUFFIX;
 
@@ -62,6 +63,9 @@ public class PrometheusPushGatewayReporterFactory implements MetricReporterFacto
         Map<String, String> groupingKey =
                 parseGroupingKey(
                         metricConfig.getString(GROUPING_KEY.key(), GROUPING_KEY.defaultValue()));
+        String metricFilterRegExp =
+                metricConfig.getString(
+                        METRIC_FILTER_REGEXP.key(), METRIC_FILTER_REGEXP.defaultValue());
 
         if (host == null || host.isEmpty() || port < 1) {
             throw new IllegalArgumentException(
@@ -83,7 +87,7 @@ public class PrometheusPushGatewayReporterFactory implements MetricReporterFacto
                 groupingKey);
 
         return new PrometheusPushGatewayReporter(
-                host, port, jobName, groupingKey, deleteOnShutdown);
+                host, port, jobName, groupingKey, deleteOnShutdown, metricFilterRegExp);
     }
 
     @VisibleForTesting

@@ -170,7 +170,7 @@ public abstract class AbstractPrometheusReporter implements MetricReporter {
         }
     }
 
-    private static String getScopedName(String metricName, MetricGroup group) {
+    static String getScopedName(String metricName, MetricGroup group) {
         return SCOPE_PREFIX
                 + getLogicalScope(group)
                 + SCOPE_SEPARATOR

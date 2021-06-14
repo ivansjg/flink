@@ -20,6 +20,7 @@ package org.apache.flink.metrics.prometheus;
 
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.metrics.Metric;
+import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.metrics.reporter.InstantiateViaFactory;
 import org.apache.flink.metrics.reporter.MetricReporter;
 import org.apache.flink.metrics.reporter.Scheduled;
@@ -30,6 +31,7 @@ import io.prometheus.client.exporter.PushGateway;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * {@link MetricReporter} that exports {@link Metric Metrics} via Prometheus {@link PushGateway}.
@@ -44,17 +46,38 @@ public class PrometheusPushGatewayReporter extends AbstractPrometheusReporter im
     private final String jobName;
     private final Map<String, String> groupingKey;
     private final boolean deleteOnShutdown;
+    private final Pattern metricFilterPattern;
 
     PrometheusPushGatewayReporter(
             String host,
             int port,
             String jobName,
             Map<String, String> groupingKey,
-            final boolean deleteOnShutdown) {
+            final boolean deleteOnShutdown,
+            final String metricFilterRegExp) {
         this.pushGateway = new PushGateway(host + ':' + port);
         this.jobName = Preconditions.checkNotNull(jobName);
         this.groupingKey = Preconditions.checkNotNull(groupingKey);
         this.deleteOnShutdown = deleteOnShutdown;
+        this.metricFilterPattern = Pattern.compile(metricFilterRegExp);
+    }
+
+    @Override
+    public void notifyOfAddedMetric(
+            final Metric metric, final String metricName, final MetricGroup group) {
+        final String scopedMetricName = getScopedName(metricName, group);
+        if (metricFilterPattern.matcher(scopedMetricName).matches()) {
+            super.notifyOfAddedMetric(metric, metricName, group);
+        }
+    }
+
+    @Override
+    public void notifyOfRemovedMetric(
+            final Metric metric, final String metricName, final MetricGroup group) {
+        final String scopedMetricName = getScopedName(metricName, group);
+        if (metricFilterPattern.matcher(scopedMetricName).matches()) {
+            super.notifyOfRemovedMetric(metric, metricName, group);
+        }
     }
 
     @Override

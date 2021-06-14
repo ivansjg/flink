@@ -86,4 +86,10 @@ public class PrometheusPushGatewayReporterOptions {
                                                     "https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels",
                                                     "Prometheus requirements"))
                                     .build());
+
+    public static final ConfigOption<String> METRIC_FILTER_REGEXP =
+            ConfigOptions.key("metricFilterRegExp")
+                    .defaultValue(".*")
+                    .withDescription(
+                            "Regular expression used to filter which metrics will be pushed to PushGateway server. If metric's scoped metric name does not matches against the regexp, then the metric won't be pushed to PushGateway server");
 }
